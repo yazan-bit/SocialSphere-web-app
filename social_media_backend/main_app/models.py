@@ -116,7 +116,7 @@ class Post(models.Model):
 
 def save_post_images(instance,filename):
     today = datetime.date.today()
-    return f'post/{instance.post.user.get_username()}_{instance.post.user.id}/{today.month}/{today.day}/{filename}'
+    return f'posts/{instance.post.user.get_username()}_{instance.post.user.id}/{today.year}_{today.month}_{today.day}/{filename}'
 
 class PostImage(models.Model):
     post = models.ForeignKey(Post,on_delete=models.CASCADE,related_name='post_images')
