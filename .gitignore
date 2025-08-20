@@ -17,5 +17,5 @@ db.sqlite3
 
 #django cache file
 */migrations/__pycache__/
+social_media_backend/main_app/migrations/
 
-social_media_backend/main_app/migrations/0001_initial.py
