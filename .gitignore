@@ -1,0 +1,20 @@
+#python cache files
+__pycache__/
+*.py[cod]
+*.pyo
+
+#sqlite database
+db.sqlite3
+
+#virtual environment
+.venv/
+.venv
+
+
+#media uploads
+#media/
+
+
+#django cache file
+*/migrations/__pycache__/
+
