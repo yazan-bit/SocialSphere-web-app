@@ -112,3 +112,73 @@ class Post(models.Model):
 
     def __str__(self):
         return f'{self.user.get_username()} post_id: {self.pk}'
+    
+
+def save_post_images(instance,filename):
+    today = datetime.date.today()
+    return f'post/{instance.post.user.get_username()}_{instance.post.user.id}/{today.month}/{today.day}/{filename}'
+
+class PostImage(models.Model):
+    post = models.ForeignKey(Post,on_delete=models.CASCADE,related_name='post_images')
+    image = models.ImageField(upload_to=save_post_images,null=True,blank=True)
+    
+
+
+class React(models.Model):
+    REACT_TYPES = [
+        ('like','like'),
+        ('dislike','dislike')
+    ]
+
+    profile = models.ForeignKey('profile',
+                                on_delete=models.CASCADE)
+    
+    post = models.ForeignKey('Post',
+                             on_delete=models.CASCADE,
+                             related_name='post_reacts')
+    
+    react_type = models.CharField(max_length=20,choices=REACT_TYPES)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('profile','post')
+
+
+
+
+class Comment(models.Model):
+    post = models.ForeignKey(Post,on_delete=models.CASCADE,related_name="post_comments")
+    user = models.ForeignKey('Profile',on_delete=models.CASCADE)
+    comment_text = models.TextField()
+    date = models.DateTimeField(auto_now_add=True)
+    replied_on = models.ForeignKey("self",
+                                on_delete=models.CASCADE,
+                                related_name="childern_comments_replies",
+                                blank=True,
+                                null=True)
+    def __str__(self):
+        return f'{self.user} comment on {self.post}, comment_id:{self.pk}'
+    
+
+
+class Notification(models.Model):
+    NOTIFICATION_TYPES = [
+        ('like','like'),
+        ('comment','comment'),
+        ('follow','follow')
+    ]
+
+    recipient = models.ForeignKey(Profile,on_delete=models.CASCADE,related_name='notifications')
+    sender = models.ForeignKey(Profile,on_delete=models.CASCADE)
+    notification_type = models.CharField(max_length=10,choices=NOTIFICATION_TYPES)
+    post = models.ForeignKey(Post,on_delete=models.CASCADE,null=True,blank=True)
+    message = models.CharField(max_length=255)
+    is_delevered = models.BooleanField(default=False)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'notification type: {self.notification_type} ,sender: \
+            {self.sender.get_username()} ,recipient: \
+                {self.recipient.get_username()} '
