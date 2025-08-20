@@ -70,6 +70,8 @@ REST_FRAMEWORK = {
 }
 
 
+
+
 ROOT_URLCONF = 'social_media_backend.urls'
 
 TEMPLATES = [
@@ -88,7 +90,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'social_media_backend.wsgi.application'
-
+ASGI_APPLICATION = 'social_media_backend.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
