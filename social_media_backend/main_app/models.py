@@ -4,15 +4,16 @@ from django.utils import timezone
 import datetime
 from django.db.models import Q
 
-
+#custom user model, we want to make users register by their email address not username
 class User(AbstractUser):
     email = models.EmailField(unique=True,null=False)
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]
     def __str__(self):
         return self.username
-    
-
+####################################################################################### 
+#PROFILE
+#custom QuerySet to handle different query operations like get followers,friends...etc
 class ProfileQuerySet(models.QuerySet):
     def followers(self,profile):
         return profile.followers
@@ -27,18 +28,21 @@ class ProfileQuerySet(models.QuerySet):
             )
         return friends.exclude(id = profile.id)
 
+#Mnager like an interface between our django model and the custom QuerySet //accessed via '.objects'
 class ProfileManageer(models.Manager):
     def get_queryset(self):
         return ProfileQuerySet(self.model,self._db)
 
-
+#a callback function that will return a string path which a personal profile image will be physically stored
 def save_profile_image(instance,filename):
     today = datetime.date.today()
-    return f'users/{today.year}/{today.month}/{today.day}/user_{instance.user.id}/{filename}' 
+    return f'users_images/{today.year}/{today.month}/{today.day}/user_{instance.user.id}/{filename}' 
 
+
+#profile model associated with our custom_user model via one2one rel
 class Profile(models.Model):
     user = models.OneToOneField(User,on_delete= models.CASCADE,related_name="profile")
-    profile_image = models.ImageField(default="default.jpg",upload_to=save_profile_image)
+    profile_image = models.ImageField(default="users_images/default.png",upload_to=save_profile_image)
     first_name = models.CharField(max_length=100,blank=True,null=True)
     last_name = models.CharField(max_length=100,blank=True,null=True)
     following = models.ManyToManyField("self",symmetrical=False,related_name="followers",blank=True)
@@ -65,8 +69,10 @@ class Profile(models.Model):
             self.last_name = self.user.last_name
         return super().save(*args,**kwargs)
 
+#######################################################################################
 
-
+#POST
+#a custom QuerySet to handle different query operations related to 'Post' model
 class PostQuerySet(models.QuerySet):
     def recent_posts(self):
         return self.order_by('-date_posted')[:5]
@@ -79,11 +85,10 @@ class PostQuerySet(models.QuerySet):
         lookup = Q(user__user__username__icontains = query_params)
         return self.filter(lookup)
 
-    def followers_posts(self,user_profile):
-        followers = user_profile.following
-        print(followers)
+    def following_posts(self,user_profile):
+        following = user_profile.following
         posts = Post.objects.none()
-        for profile in followers.all():
+        for profile in following.all():
             posts |= self.filter(user = profile)
         return posts.distinct()
 
@@ -103,6 +108,7 @@ class Post(models.Model):
 
     objects = PostManageer()
 
+    #if the instance is first created the 'date_update' field should not contain a value
     def save(self,*args,**kwargs):
         if not self.pk:
             self.date_updated = None
@@ -114,6 +120,10 @@ class Post(models.Model):
         return f'{self.user.get_username()} post_id: {self.pk}'
     
 
+###########################################################################
+# 'PostImage' model is related to 'Post' model via ForiegnKey which means a one to many relationship
+# 'Post' can have multiple images but each image is related to one post
+
 def save_post_images(instance,filename):
     today = datetime.date.today()
     return f'posts/{instance.post.user.get_username()}_{instance.post.user.id}/{today.year}_{today.month}_{today.day}/{filename}'
@@ -121,8 +131,7 @@ def save_post_images(instance,filename):
 class PostImage(models.Model):
     post = models.ForeignKey(Post,on_delete=models.CASCADE,related_name='post_images')
     image = models.ImageField(upload_to=save_post_images,null=True,blank=True)
-    
-
+############################################################################
 
 class React(models.Model):
     REACT_TYPES = [
@@ -145,8 +154,9 @@ class React(models.Model):
         unique_together = ('profile','post')
 
 
+###############################################################################
 
-
+# 'Comment' model is related to itself via 'self' one2many rel
 class Comment(models.Model):
     post = models.ForeignKey(Post,on_delete=models.CASCADE,related_name="post_comments")
     user = models.ForeignKey('Profile',on_delete=models.CASCADE)
@@ -161,6 +171,7 @@ class Comment(models.Model):
         return f'{self.user} comment on {self.post}, comment_id:{self.pk}'
     
 
+################################################################################
 
 class Notification(models.Model):
     NOTIFICATION_TYPES = [
