@@ -32,10 +32,10 @@ SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG',default=False,cast = bool)
-print(DEBUG)
 
 ALLOWED_HOSTS =config('ALLOWED_HOSTS',default='localhost',cast=Csv())
-#['localhost','127.0.0.1','*']
+print(ALLOWED_HOSTS)
+# ALLOWED_HOSTS = ['localhost','127.0.0.1','*']
 
 
 # Application definition
@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'cloudinary',
     'main_app',
+    'chat_app',
     'rest_framework',
     'drf_yasg',
     'rest_framework_simplejwt',
@@ -76,12 +77,26 @@ CORS_ALLOWED_ORIGINS = [
 
 
 REST_FRAMEWORK = {
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.MultiPartParser',
+        'rest_framework.parsers.FormParser',
+    ],
     'DEFAULT_AUTHENTICATION_CLASSES': (
     'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
 }
 
-
+#SWAGGER SETTINGS
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS':{
+        'Bearer':{
+            'type':'apiKey',
+            'name':'Authorization',
+            'in':'header'
+        }
+    }
+}
 
 
 ROOT_URLCONF = 'social_media_backend.urls'

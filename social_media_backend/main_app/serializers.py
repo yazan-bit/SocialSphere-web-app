@@ -12,6 +12,7 @@ from .models import (User,
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 class RegisterUser(serializers.ModelSerializer):
+    username = serializers.CharField()
     password = serializers.CharField(write_only = True,required = True)
     password2 = serializers.CharField(write_only = True,required = True)
 
@@ -76,6 +77,7 @@ class InlinePostUserReacts(serializers.Serializer):
 
 
 #################################################################################
+
 class PostCommentsSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     author = serializers.CharField(source='user.get_username',read_only=True)
@@ -168,9 +170,10 @@ class PostSerializer(serializers.ModelSerializer):
         return int(total_dislikes)
     
     def get_post_comments(self,obj):
+        context = self.context
         post_comments = obj.post_comments.filter(replied_on = None)
         comments_count = obj.post_comments.count()
-        all_post_comments = PostCommentsSerializer(post_comments,many=True)
+        all_post_comments = PostCommentsSerializer(post_comments,many=True,context=context)
         return {
             'comments_count':comments_count,
             'comments':all_post_comments.data
@@ -228,37 +231,23 @@ class PostSerializer(serializers.ModelSerializer):
                 return None
 
 
+############################################################################
+from django.core.validators import FileExtensionValidator
 
-class PostCreateSerializer(serializers.ModelSerializer):
-    ######################################
+class PostCreateSerializer(serializers.Serializer):
     images = serializers.ListField(
-        child = serializers.ImageField(),
-        required = False,
-        allow_empty = True
+        child=serializers.ImageField(
+            max_length=1000000,
+            allow_empty_file=False,
+            use_url=False,
+            validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png'])]
+        ),
+        required=True
     )
-    #######################################
-    class Meta:
-        model = Post
-        fields = [
-            'title',
-            'content',
-            'images'
-        ]
-
-    def create(self, validated_data):
-        images = validated_data.pop('images',[])
-        request = self.context.get('request')
-        user = request.user
-        user_profile = Profile.objects.get(user = user)
-        post_instance = Post.objects.create(user = user_profile,**validated_data)
-
-        #create PostImage instance if there are images attached with the request
-        for img in images:
-            PostImage.objects.create(post = post_instance,image = img)
-
-        return post_instance
-
     
+    title = serializers.CharField(max_length=255, required=False)
+    content = serializers.CharField(required=False)
+#############################################################################
 class NotificationSerializer(serializers.ModelSerializer):
     post_id = serializers.SerializerMethodField()
     post_title = serializers.SerializerMethodField()
@@ -274,9 +263,6 @@ class NotificationSerializer(serializers.ModelSerializer):
             'message',
             'is_read',
         ]
-
-    def save(self, **kwargs):
-        return super().save(**kwargs)
     
     def get_post_id(self,obj):
         return obj.post.id

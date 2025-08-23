@@ -89,6 +89,8 @@ def create_comment_notification(sender,instance,created,**kwargs):
                     }
                 }
             )
+            notification.is_delivered = True
+            notification.save()
         except:
             print('user is not logged in right now')
 

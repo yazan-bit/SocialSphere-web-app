@@ -19,3 +19,6 @@ db.sqlite3
 */migrations/__pycache__/
 social_media_backend/main_app/migrations/
 
+/social_media_backend/chat_app/migrations
+/social_media_backend/media
+social_media_backend/.env
