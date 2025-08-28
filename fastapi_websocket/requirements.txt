@@ -1,0 +1,8 @@
+fastapi
+asyncpg
+psycopg2
+sqlalchemy[asyncio]
+django
+jwt
+uvicorn[standard]
+decouple
