@@ -22,3 +22,32 @@ social_media_backend/main_app/migrations/
 /social_media_backend/chat_app/migrations
 /social_media_backend/media
 social_media_backend/.env
+
+
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+frontend/src/assets/yazan.jpg
+social_media_backend/builld.sh
